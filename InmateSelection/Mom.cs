@@ -8,5 +8,7 @@ namespace InmateSelection
 {
     public sealed class Mom
     {
+        public string Name { get; set; }
+        public int CardsRequested { get; set; }
     }
 }
