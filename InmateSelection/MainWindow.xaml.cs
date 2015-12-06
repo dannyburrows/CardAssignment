@@ -26,6 +26,11 @@ namespace InmateSelection
     /// </summary>
     public partial class MainWindow : Window
     {
+        private DataSet ExcelData
+        {
+            get; set;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -43,9 +48,18 @@ namespace InmateSelection
             if (userClickedOk == true)
             {
                 string fileName = fileDialog.FileName;
-                DataSet data = LoadExcel(fileName);
-                //ProcessExcel(ref data);
+                ExcelData = LoadExcel(fileName);
+                foreach(DataTable table in ExcelData.Tables)
+                {
+                    lstSheets.Items.Add(table.TableName);
+                }
+                
             }
+        }
+
+        private void btnProcess_Click(object sender, RoutedEventArgs e)
+        {
+            ProcessExcel(lstSheets.SelectedValue.ToString());
         }
 
         private DataSet LoadExcel(string file)
@@ -62,11 +76,11 @@ namespace InmateSelection
             return result;
         }
 
-        private void ProcessExcel(ref DataSet Data)
+        private void ProcessExcel(string SheetName)
         {
             List<Mom> Moms = new List<Mom>();
             // create the list
-            foreach(DataRow row in Data.Tables[0].Rows)
+            foreach(DataRow row in ExcelData.Tables[SheetName].Rows)
             {
                 Mom newMom = new Mom(row);
                 Moms.Add(newMom);
