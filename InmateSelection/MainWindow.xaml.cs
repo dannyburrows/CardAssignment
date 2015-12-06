@@ -18,6 +18,10 @@ using System.IO;
 using Excel;
 using System.Data;
 using System.Linq;
+using System.Collections.Generic;
+using ClosedXML;
+using ClosedXML.Excel;
+using ClosedXML.Excel.CalcEngine;
 
 namespace InmateSelection
 {
@@ -93,6 +97,16 @@ namespace InmateSelection
                     mom.ChildrenToSendCards.Add(SelectChild(Moms));
                 }
             }
+            WriteNewSheet(Moms);
+            lblFinished.Visibility = Visibility.Visible;
+        }
+
+        private void WriteNewSheet(List<Mom> Moms)
+        {
+            XLWorkbook workbook = new XLWorkbook();
+            DataTable table = ConvertListToDataTable(Moms);
+            workbook.Worksheets.Add(table);
+            workbook.SaveAs("C:\\Users\\danny\\Downloads\\testsave.xlsx");
         }
 
         private Child SelectChild(List<Mom> Moms)
@@ -114,6 +128,47 @@ namespace InmateSelection
             }
 
             return selected;
+        }
+
+        private DataTable ConvertListToDataTable(List<Mom> Moms)
+        {
+            DataTable convertedTable = new DataTable();
+            convertedTable.TableName = "Send List";
+            convertedTable.Columns.Add("Cards Requested");
+            convertedTable.Columns.Add("Mom");
+            convertedTable.Columns.Add("Child");
+            convertedTable.Columns.Add("DOC #");
+            convertedTable.Columns.Add("Facility");
+            convertedTable.Columns.Add("Address #1");
+            convertedTable.Columns.Add("Address #2");
+            convertedTable.Columns.Add("City");
+            convertedTable.Columns.Add("State");
+            convertedTable.Columns.Add("Zip");
+            foreach (Mom mom in Moms)
+            {
+                DataRow row = convertedTable.NewRow();
+                row["Cards Requested"] = mom.CardsRequested;
+                row["Mom"] = mom.Name;
+                row["Child"] = mom.Child.Name;
+                convertedTable.Rows.Add(row);
+                foreach(Child child in mom.ChildrenToSendCards)
+                {
+                    DataRow childRow = convertedTable.NewRow();
+                    childRow["Cards Requested"] = null;
+                    childRow["Mom"] = mom.Name;
+                    childRow["Child"] = child.Name;
+
+                    childRow["DOC #"] = child.DOC;
+                    childRow["Facility"] = child.Facility;
+                    childRow["Address #1"] = child.Address1;
+                    childRow["Address #2"] = child.Address2;
+                    childRow["City"] = child.City;
+                    childRow["State"] = child.State;
+                    childRow["Zip"] = child.Zip;
+                    convertedTable.Rows.Add(childRow);
+                }
+            }
+            return convertedTable;
         }
     }
 }
