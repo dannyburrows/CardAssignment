@@ -1,29 +1,16 @@
-﻿using System;
+﻿using ClosedXML.Excel;
+using Excel;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Controls;
-using Microsoft.Win32;
-using System.IO;
-using Excel;
-using System.Data;
-using System.Linq;
-using System.Collections.Generic;
-using ClosedXML;
-using ClosedXML.Excel;
-using ClosedXML.Excel.CalcEngine;
 
-namespace InmateSelection
+namespace CardAssignment
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -35,37 +22,102 @@ namespace InmateSelection
             get; set;
         }
 
-        public MainWindow()
+        private string FilePath
         {
+            get; set;
+        }
+
+        private string NewSheetName
+        {
+            get; set;
+        }
+
+        public MainWindow()
+        {   
             InitializeComponent();
         }
 
+        #region "Page Events"
+
+        /// <summary>
+        /// Starts the loading process for the file that was selected
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnSelectFile_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
+            lblProcessing.Visibility = Visibility.Visible;
 
-            fileDialog.Filter = "Excel files (.xls)|*.xlsx|All Files (*.*)|*.*";
+            fileDialog.Filter = "Excel files (.xlsx)|*.xlsx|All Files (*.*)|*.*";
             fileDialog.FilterIndex = 1;
 
             bool? userClickedOk = fileDialog.ShowDialog();
-
-            if (userClickedOk == true)
+            try
             {
-                string fileName = fileDialog.FileName;
-                ExcelData = LoadExcel(fileName);
-                foreach(DataTable table in ExcelData.Tables)
+                if (userClickedOk == true)
                 {
-                    lstSheets.Items.Add(table.TableName);
+                    FilePath = fileDialog.FileName;
+                    ExcelData = LoadExcel(FilePath);
+                    lstSheets.Items.Clear();
+                    foreach (DataTable table in ExcelData.Tables)
+                    {
+                        lstSheets.Items.Add(table.TableName);
+                    }
+                    lstSheets.Visibility = Visibility.Visible;
+                    lblSheetList.Visibility = Visibility.Visible;
                 }
-                
+                lblProcessing.Content = "Success!";
             }
-        }
+            catch (Exception ex)
+            {
+                lblProcessing.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                lblProcessing.Content = "Error occurred!";
+            }
+        } // btnSelectFile_Click
 
+        /// <summary>
+        /// Processes the selected sheet
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnProcess_Click(object sender, RoutedEventArgs e)
         {
-            ProcessExcel(lstSheets.SelectedValue.ToString());
-        }
+            lblCompleted.Content = "Processing...";
+            NewSheetName = txtNewSheetName.Text.Trim();
+            try
+            {
+                ProcessExcel(lstSheets.SelectedValue.ToString());
+                lblCompleted.Content = "Success!";
+            } catch (Exception ex)
+            {
+                lblCompleted.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                lblCompleted.Content = "Error!";
+            }
+        } // btnProcess_Click
 
+        /// <summary>
+        /// Captures the list selection change
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void lstSheets_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            lblSheetName.Visibility = Visibility.Visible;
+            txtNewSheetName.Visibility = Visibility.Visible;
+            txtNewSheetName.Text = lstSheets.SelectedValue + "_SendList";
+            btnProcess.Visibility = Visibility.Visible;
+        } // lstSheets_SelectionChanged
+
+        #endregion
+
+        #region "Excel"
+
+        /// <summary>
+        /// Opens the excel sheet and loads the entire workbook into a dataset
+        /// </summary>
+        /// <param name="file">File path</param>
+        /// <returns>Filled dataset with the workbook information</returns>
         private DataSet LoadExcel(string file)
         {
             FileStream excelSteam = File.Open(file, FileMode.Open, FileAccess.Read);
@@ -78,62 +130,86 @@ namespace InmateSelection
             excelReader.Close();
 
             return result;
-        }
+        } // LoadExcel
 
+        /// <summary>
+        /// Processes the excel sheet, creating mom and child objects
+        /// </summary>
+        /// <param name="SheetName">Name that will be assigned to the sheet</param>
         private void ProcessExcel(string SheetName)
         {
             List<Mom> Moms = new List<Mom>();
             // create the list
-            foreach(DataRow row in ExcelData.Tables[SheetName].Rows)
+            foreach (DataRow row in ExcelData.Tables[SheetName].Rows)
             {
                 Mom newMom = new Mom(row);
                 Moms.Add(newMom);
             }
             // assign each mom the requested number of cards
-            foreach(Mom mom in Moms)
+            foreach (Mom mom in Moms)
             {
-                for(int i = 0; i < mom.CardsRequested; i++)
+                for (int i = 0; i < mom.CardsRequested; i++)
                 {
                     mom.ChildrenToSendCards.Add(SelectChild(Moms));
                 }
             }
             WriteNewSheet(Moms);
-            lblFinished.Visibility = Visibility.Visible;
-        }
+            lblCompleted.Visibility = Visibility.Visible;
+        } // ProcessExcel
 
+        /// <summary>
+        /// Updates the existing file with the new worksheet information
+        /// </summary>
+        /// <param name="Moms">List of completed Mom objects</param>
         private void WriteNewSheet(List<Mom> Moms)
         {
-            XLWorkbook workbook = new XLWorkbook();
+            XLWorkbook workbook = new XLWorkbook(FilePath);
             DataTable table = ConvertListToDataTable(Moms);
             workbook.Worksheets.Add(table);
-            workbook.SaveAs("C:\\Users\\danny\\Downloads\\testsave.xlsx");
-        }
+            workbook.Save();
+        } // WriteNewSheet
 
+        #endregion
+
+        /// <summary>
+        /// Selects an individual child from the list of children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <returns>Child object</returns>
         private Child SelectChild(List<Mom> Moms)
         {
-            int maxSelectedCount = (from m in Moms select m.Child.SelectedCount).Max();
-            int minSelectedCount = (from m in Moms select m.Child.SelectedCount).Min();
+            List<Mom> availableChildren = (from m in Moms where m.Child != null select m).ToList();
+
+            int maxSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Max();
+            int minSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Min();
             Child selected = null;
             Random rand = new Random();
 
+            // grab random child object, unless a child has already been selected this round
             if (maxSelectedCount == minSelectedCount)
             {
                 selected = Moms[rand.Next(0, Moms.Count())].Child;
                 selected.SelectedCount++;
             } else
             {
-                List<Mom> tempMoms = (from m in Moms where m.Child.SelectedCount == minSelectedCount select m).ToList();
+                // ensure that all children have a fair chance at being selected
+                List<Mom> tempMoms = (from c in availableChildren where c.Child.SelectedCount == minSelectedCount select c).ToList();
                 selected = tempMoms[rand.Next(0, tempMoms.Count())].Child;
                 selected.SelectedCount++;
             }
 
             return selected;
-        }
+        } // SelectChild
 
+        /// <summary>
+        /// Converts a List of Moms into a DataTable that can be converted into an excel document
+        /// </summary>
+        /// <param name="Moms">List of previously filled out mom objects</param>
+        /// <returns>DataTable</returns>
         private DataTable ConvertListToDataTable(List<Mom> Moms)
         {
             DataTable convertedTable = new DataTable();
-            convertedTable.TableName = "Send List";
+            convertedTable.TableName = NewSheetName;
             convertedTable.Columns.Add("Cards Requested");
             convertedTable.Columns.Add("Mom");
             convertedTable.Columns.Add("Child");
@@ -146,11 +222,20 @@ namespace InmateSelection
             convertedTable.Columns.Add("Zip");
             foreach (Mom mom in Moms)
             {
+                // Add the basic mom information
                 DataRow row = convertedTable.NewRow();
                 row["Cards Requested"] = mom.CardsRequested;
                 row["Mom"] = mom.Name;
-                row["Child"] = mom.Child.Name;
+                if (mom.Child == null)
+                {
+                    row["Child"] = string.Empty;
+                } else
+                {
+                    row["Child"] = mom.Child.Name;
+                }
+                
                 convertedTable.Rows.Add(row);
+                // add a row for each child that was assigned to a mom
                 foreach(Child child in mom.ChildrenToSendCards)
                 {
                     DataRow childRow = convertedTable.NewRow();
@@ -169,6 +254,6 @@ namespace InmateSelection
                 }
             }
             return convertedTable;
-        }
+        } // ConvertListToDataTable
     }
 }

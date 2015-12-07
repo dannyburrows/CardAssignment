@@ -1,7 +1,7 @@
-﻿<Application x:Class="InmateSelection.App"
+﻿<Application x:Class="CardAssignment.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:InmateSelection"
+             xmlns:local="clr-namespace:CardAssignment"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

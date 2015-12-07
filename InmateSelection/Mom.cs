@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InmateSelection
+namespace CardAssignment
 {
     public sealed class Mom
     {
@@ -31,17 +31,20 @@ namespace InmateSelection
             }
 
             Name = Row["Mom"].ToString();
-            Child = new Child
+            if (!(Row["Child"] == DBNull.Value || string.IsNullOrEmpty(Row["Child"].ToString())))
             {
-                Name = Row["Child"].ToString(),
-                DOC = Row["DOC #"].ToString(),
-                Facility = Row["Facility"].ToString(),
-                Address1 = Row["Address #1"].ToString(),
-                Address2 = Row["Address #2"].ToString(),
-                City = Row["City"].ToString(),
-                State = Row["State"].ToString(),
-                Zip = Row["Zip"].ToString()
-            };
+                Child = new Child
+                {
+                    Name = Row["Child"].ToString(),
+                    DOC = Row["DOC #"].ToString(),
+                    Facility = Row["Facility"].ToString(),
+                    Address1 = Row["Address #1"].ToString(),
+                    Address2 = Row["Address #2"].ToString(),
+                    City = Row["City"].ToString(),
+                    State = Row["State"].ToString(),
+                    Zip = Row["Zip"].ToString()
+                };
+            }
         }
     }
 }
