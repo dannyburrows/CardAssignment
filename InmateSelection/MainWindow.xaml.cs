@@ -67,12 +67,22 @@ namespace CardAssignment
                     lstSheets.Visibility = Visibility.Visible;
                     lblSheetList.Visibility = Visibility.Visible;
                 }
+                lblProcessing.Foreground = new SolidColorBrush(Color.FromRgb(66,186,42));
                 lblProcessing.Content = "Success!";
             }
             catch (Exception ex)
             {
                 lblProcessing.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
-                lblProcessing.Content = "Error occurred!";
+                lstSheets.Visibility = Visibility.Hidden;
+                lblSheetList.Visibility = Visibility.Hidden;
+                if (ex.ToString().Contains("being used by another process"))
+                {
+                    lblProcessing.Content = "File is open. Close and try again.";
+                }
+                else
+                {
+                    lblProcessing.Content = "Error occurred!";
+                }
             }
         } // btnSelectFile_Click
 

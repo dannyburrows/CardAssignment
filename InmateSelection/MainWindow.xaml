@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CardAssignment"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="333.411" Background="#FF222222">
+        Title="Card Assignment" Height="350" Width="333.411" Background="#FF222222">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -18,7 +18,7 @@
         <TextBox x:Name="txtNewSheetName" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="236" Margin="10,202,0,0" Visibility="Hidden"/>
         <Label x:Name="lblSheetName" Content="Name of new sheet that will be saved" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,171,0,0" Width="236" Foreground="#FFE6E6E6" Visibility="Hidden" Height="26"/>
         <Label x:Name="lblCompleted" Content="Completed!!!" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,255,0,0" Width="236" Foreground="#FF44CF36" Visibility="Hidden" Height="26"/>
-        <Label x:Name="lblProcessing" Content="Processing..." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="89,7,0,0" Width="157" Foreground="#FF42BA2A" Visibility="Hidden" Height="26"/>
+        <Label x:Name="lblProcessing" Content="Processing..." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="89,7,0,0" Width="226" Foreground="#FF42BA2A" Visibility="Hidden" Height="26"/>
 
     </Grid>
 </Window>
