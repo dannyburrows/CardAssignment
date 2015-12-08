@@ -186,28 +186,29 @@ namespace CardAssignment
         /// Selects an individual child from the list of children
         /// </summary>
         /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <param name="currentMom">Mom currently being assigned a child</param>
+        /// <param name="rand">Random object to use for selecting next child</param>
         /// <returns>Child object</returns>
         private Child SelectChild(List<Mom> Moms, Mom currentMom, Random rand)
         {
-            List<Mom> availableChildren = (from m in Moms where m.Child != null && m != currentMom select m).ToList();
+            List<Child> availableChildren = (from m in Moms where m.Child != null && m != currentMom select m.Child).ToList();
 
-            int maxSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Max();
-            int minSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Min();
+            int maxSelectedCount = (from c in availableChildren select c.SelectedCount).Max();
+            int minSelectedCount = (from c in availableChildren select c.SelectedCount).Min();
             Child selected = null;
             
             // grab random child object, unless a child has already been selected this round
             if (maxSelectedCount == minSelectedCount)
             {
-                selected = availableChildren[rand.Next(0, Moms.Count())].Child;
-                selected.SelectedCount++;
+                selected = availableChildren[rand.Next(0, availableChildren.Count())];
             } else
             {
                 // ensure that all children have a fair chance at being selected
-                List<Mom> tempMoms = (from c in availableChildren where c.Child.SelectedCount == minSelectedCount select c).ToList();
-                selected = tempMoms[rand.Next(0, tempMoms.Count())].Child;
-                selected.SelectedCount++;
+                List<Child> tempChildren = (from c in availableChildren where c.SelectedCount == minSelectedCount select c).ToList();
+                selected = tempChildren[rand.Next(0, tempChildren.Count())];
             }
 
+            selected.SelectedCount++;
             return selected;
         } // SelectChild
 
