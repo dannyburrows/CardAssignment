@@ -6,19 +6,17 @@
         xmlns:local="clr-namespace:CardAssignment"
         mc:Ignorable="d"
         Title="Card Assignment" Height="350" Width="333.411" Background="#FF222222">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="0*"/>
-        </Grid.ColumnDefinitions>
-        <Button x:Name="btnSelectFile" Content="Select File" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,10,0,0" Click="btnSelectFile_Click" Height="20"/>
-        <ListBox x:Name="lstSheets" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="236" Margin="10,66,0,0" Visibility="Hidden" SelectionChanged="lstSheets_SelectionChanged"/>
-        <Button x:Name="btnProcess" Content="Process" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="10,230,0,0" Click="btnProcess_Click" Visibility="Hidden" Height="20"/>
-        <Label x:Name="lblSheetList" Content="Select sheet with list of moms and children" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,35,0,0" Width="236" Foreground="#FFE6E6E6" Visibility="Hidden" Height="26"/>
-        <TextBox x:Name="txtNewSheetName" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="236" Margin="10,202,0,0" Visibility="Hidden"/>
-        <Label x:Name="lblSheetName" Content="Name of new sheet that will be saved" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,171,0,0" Width="236" Foreground="#FFE6E6E6" Visibility="Hidden" Height="26"/>
-        <Label x:Name="lblCompleted" Content="Completed!!!" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,255,0,0" Width="236" Foreground="#FF44CF36" Visibility="Hidden" Height="26"/>
-        <Label x:Name="lblProcessing" Content="Processing..." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="89,7,0,0" Width="226" Foreground="#FF42BA2A" Visibility="Hidden" Height="26"/>
-        <TextBlock x:Name="lblError" Text="" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,255,0,0" Width="236" Visibility="Hidden" TextWrapping="Wrap"/>
-    </Grid>
+    <StackPanel Orientation="Vertical" Margin="10">
+        <StackPanel Orientation="Horizontal">
+            <Button x:Name="btnSelectFile" Content="Select File" HorizontalAlignment="Left" VerticalAlignment="Center" Width="75" Click="btnSelectFile_Click" Height="20"/>
+            <Label x:Name="lblProcessing" Content="Processing..." HorizontalAlignment="Left" VerticalAlignment="Center" Width="226" Foreground="#FF42BA2A" Visibility="Hidden" Height="26"/>
+        </StackPanel>
+        <Label x:Name="lblSheetList" Content="Select sheet with list of moms and children" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" Width="236" Foreground="#FFE6E6E6" Visibility="Hidden" Height="26"/>
+        <ListBox x:Name="lstSheets" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Margin="0,5,0,0" Width="236" Visibility="Hidden" SelectionChanged="lstSheets_SelectionChanged"/>
+        <Label x:Name="lblSheetName" Content="Name of new sheet that will be saved" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" Width="236" Foreground="#FFE6E6E6" Visibility="Hidden" Height="26"/>
+        <TextBox x:Name="txtNewSheetName" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,5,0,0" Width="236" Visibility="Hidden"/>
+        <Button x:Name="btnProcess" Content="Process" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" Width="75" Click="btnProcess_Click" Visibility="Hidden" Height="20"/>
+        <Label x:Name="lblCompleted" Content="Completed!!!" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" Width="236" Foreground="#FF44CF36" Visibility="Collapsed" Height="26"/>
+        <TextBlock x:Name="lblError" Text="" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" Visibility="Collapsed" TextWrapping="Wrap"/>
+    </StackPanel>
 </Window>
