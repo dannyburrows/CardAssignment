@@ -32,6 +32,22 @@ namespace CardAssignment
             get; set;
         }
 
+        private SolidColorBrush ErrorColor
+        {
+            get
+            {
+                return new SolidColorBrush(Color.FromRgb(255, 58, 14));
+            }
+        }
+
+        private SolidColorBrush SuccessColor
+        {
+            get
+            {
+                return new SolidColorBrush(Color.FromRgb(66, 186, 42));
+            }
+        }
+
         public MainWindow()
         {   
             InitializeComponent();
@@ -67,12 +83,12 @@ namespace CardAssignment
                     lstSheets.Visibility = Visibility.Visible;
                     lblSheetList.Visibility = Visibility.Visible;
                 }
-                lblProcessing.Foreground = new SolidColorBrush(Color.FromRgb(66,186,42));
+                lblProcessing.Foreground = SuccessColor;
                 lblProcessing.Content = "Success!";
             }
             catch (Exception ex)
             {
-                lblProcessing.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                lblProcessing.Foreground = ErrorColor;
                 lstSheets.Visibility = Visibility.Hidden;
                 lblSheetList.Visibility = Visibility.Hidden;
                 if (ex.ToString().Contains("being used by another process"))
@@ -98,7 +114,7 @@ namespace CardAssignment
 
             if (lstSheets.Items.Contains(NewSheetName))
             {
-                lblError.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                lblError.Foreground = ErrorColor;
                 lblError.Visibility = Visibility.Visible;
                 lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
             }
@@ -111,7 +127,7 @@ namespace CardAssignment
                 }
                 catch (Exception ex)
                 {
-                    lblCompleted.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                    lblCompleted.Foreground = ErrorColor;
                     lblCompleted.Content = "Error!";
                 }
             }
