@@ -116,6 +116,19 @@ namespace CardAssignment
             lblSheetName.Visibility = Visibility.Visible;
             txtNewSheetName.Visibility = Visibility.Visible;
             txtNewSheetName.Text = lstSheets.SelectedValue + "_SendList";
+
+            if (lstSheets.Items.Contains(txtNewSheetName.Text))
+            {
+                int sendListCounter = 2;
+
+                while (lstSheets.Items.Contains($"{txtNewSheetName.Text}{sendListCounter}"))
+                {
+                    sendListCounter++;
+                }
+
+                txtNewSheetName.Text = $"{txtNewSheetName.Text}{sendListCounter}";
+            }
+
             btnProcess.Visibility = Visibility.Visible;
         } // lstSheets_SelectionChanged
 
