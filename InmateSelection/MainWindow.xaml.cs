@@ -62,6 +62,13 @@ namespace CardAssignment
         /// <param name="e"></param>
         private void btnSelectFile_Click(object sender, RoutedEventArgs e)
         {
+            //Clear screen
+            lblSheetName.Visibility = Visibility.Hidden;
+            txtNewSheetName.Visibility = Visibility.Hidden;
+            btnProcess.Visibility = Visibility.Hidden;
+            lblCompleted.Visibility = Visibility.Collapsed;
+            lblError.Visibility = Visibility.Collapsed;
+
             OpenFileDialog fileDialog = new OpenFileDialog();
             lblProcessing.Visibility = Visibility.Visible;
 
@@ -113,11 +120,13 @@ namespace CardAssignment
         /// <param name="e"></param>
         private void btnProcess_Click(object sender, RoutedEventArgs e)
         {
+            lblCompleted.Visibility = Visibility.Visible;
             lblCompleted.Content = "Processing...";
             NewSheetName = txtNewSheetName.Text.Trim();
 
             if (lstSheets.Items.Contains(NewSheetName))
             {
+                lblCompleted.Visibility = Visibility.Collapsed;
                 lblError.Foreground = ErrorColor;
                 lblError.Visibility = Visibility.Visible;
                 lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
@@ -127,12 +136,26 @@ namespace CardAssignment
                 try
                 {
                     ProcessExcel(lstSheets.SelectedValue.ToString());
+                    lblCompleted.Foreground = SuccessColor;
                     lblCompleted.Content = "Success!";
                 }
                 catch (Exception ex)
                 {
-                    lblCompleted.Foreground = ErrorColor;
-                    lblCompleted.Content = "Error!";
+                    lblCompleted.Visibility = Visibility.Collapsed;
+                    lblError.Foreground = ErrorColor;
+                    lblError.Visibility = Visibility.Visible;
+                    if (ex.Message == "An item with the same key has already been added.")
+                    {
+                        lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                    }
+                    else if(ex.ToString().Contains("being used by another process"))
+                    {
+                        lblError.Text = "File is open. Close and try again.";
+                    }
+                    else
+                    {
+                        lblError.Text = "Error occurred!";
+                    }
                 }
             }
         } // btnProcess_Click
@@ -213,7 +236,6 @@ namespace CardAssignment
                 }
             }
             WriteNewSheet(Moms);
-            lblCompleted.Visibility = Visibility.Visible;
         } // ProcessExcel
 
         /// <summary>
