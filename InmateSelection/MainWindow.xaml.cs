@@ -160,7 +160,7 @@ namespace CardAssignment
             {
                 for (int i = 0; i < mom.CardsRequested; i++)
                 {
-                    mom.ChildrenToSendCards.Add(SelectChild(Moms));
+                    mom.ChildrenToSendCards.Add(SelectChild(Moms, mom));
                 }
             }
             WriteNewSheet(Moms);
@@ -186,9 +186,9 @@ namespace CardAssignment
         /// </summary>
         /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         /// <returns>Child object</returns>
-        private Child SelectChild(List<Mom> Moms)
+        private Child SelectChild(List<Mom> Moms, Mom currentMom)
         {
-            List<Mom> availableChildren = (from m in Moms where m.Child != null select m).ToList();
+            List<Mom> availableChildren = (from m in Moms where m.Child != null && m != currentMom select m).ToList();
 
             int maxSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Max();
             int minSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Min();
@@ -198,7 +198,7 @@ namespace CardAssignment
             // grab random child object, unless a child has already been selected this round
             if (maxSelectedCount == minSelectedCount)
             {
-                selected = Moms[rand.Next(0, Moms.Count())].Child;
+                selected = availableChildren[rand.Next(0, Moms.Count())].Child;
                 selected.SelectedCount++;
             } else
             {
