@@ -95,14 +95,25 @@ namespace CardAssignment
         {
             lblCompleted.Content = "Processing...";
             NewSheetName = txtNewSheetName.Text.Trim();
-            try
+
+            if (lstSheets.Items.Contains(NewSheetName))
             {
-                ProcessExcel(lstSheets.SelectedValue.ToString());
-                lblCompleted.Content = "Success!";
-            } catch (Exception ex)
+                lblError.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                lblError.Visibility = Visibility.Visible;
+                lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+            }
+            else
             {
-                lblCompleted.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
-                lblCompleted.Content = "Error!";
+                try
+                {
+                    ProcessExcel(lstSheets.SelectedValue.ToString());
+                    lblCompleted.Content = "Success!";
+                }
+                catch (Exception ex)
+                {
+                    lblCompleted.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                    lblCompleted.Content = "Error!";
+                }
             }
         } // btnProcess_Click
 
