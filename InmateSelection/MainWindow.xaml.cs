@@ -144,23 +144,27 @@ namespace CardAssignment
         /// <param name="e"></param>
         private void lstSheets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            lblSheetName.Visibility = Visibility.Visible;
-            txtNewSheetName.Visibility = Visibility.Visible;
-            txtNewSheetName.Text = lstSheets.SelectedValue + "_SendList";
-
-            if (lstSheets.Items.Contains(txtNewSheetName.Text))
+            if (lstSheets.SelectedValue != null)
             {
-                int sendListCounter = 2;
+                lblError.Visibility = Visibility.Collapsed;
+                lblSheetName.Visibility = Visibility.Visible;
+                txtNewSheetName.Visibility = Visibility.Visible;
+                txtNewSheetName.Text = lstSheets.SelectedValue + "_SendList";
 
-                while (lstSheets.Items.Contains($"{txtNewSheetName.Text}{sendListCounter}"))
+                if (lstSheets.Items.Contains(txtNewSheetName.Text))
                 {
-                    sendListCounter++;
+                    int sendListCounter = 2;
+
+                    while (lstSheets.Items.Contains($"{txtNewSheetName.Text}{sendListCounter}"))
+                    {
+                        sendListCounter++;
+                    }
+
+                    txtNewSheetName.Text = $"{txtNewSheetName.Text}{sendListCounter}";
                 }
 
-                txtNewSheetName.Text = $"{txtNewSheetName.Text}{sendListCounter}";
+                btnProcess.Visibility = Visibility.Visible;
             }
-
-            btnProcess.Visibility = Visibility.Visible;
         } // lstSheets_SelectionChanged
 
         #endregion
