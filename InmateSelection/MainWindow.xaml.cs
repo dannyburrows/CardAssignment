@@ -85,6 +85,10 @@ namespace CardAssignment
                 }
                 lblProcessing.Foreground = SuccessColor;
                 lblProcessing.Content = "Success!";
+                if (lstSheets.Items.Count == 1)
+                {
+                    lstSheets.SelectedIndex = 0;
+                }
             }
             catch (Exception ex)
             {
