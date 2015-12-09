@@ -32,6 +32,22 @@ namespace CardAssignment
             get; set;
         }
 
+        private SolidColorBrush ErrorColor
+        {
+            get
+            {
+                return new SolidColorBrush(Color.FromRgb(255, 58, 14));
+            }
+        }
+
+        private SolidColorBrush SuccessColor
+        {
+            get
+            {
+                return new SolidColorBrush(Color.FromRgb(66, 186, 42));
+            }
+        }
+
         public MainWindow()
         {   
             InitializeComponent();
@@ -46,6 +62,13 @@ namespace CardAssignment
         /// <param name="e"></param>
         private void btnSelectFile_Click(object sender, RoutedEventArgs e)
         {
+            //Clear screen
+            lblSheetName.Visibility = Visibility.Hidden;
+            txtNewSheetName.Visibility = Visibility.Hidden;
+            btnProcess.Visibility = Visibility.Hidden;
+            lblCompleted.Visibility = Visibility.Collapsed;
+            lblError.Visibility = Visibility.Collapsed;
+
             OpenFileDialog fileDialog = new OpenFileDialog();
             lblProcessing.Visibility = Visibility.Visible;
 
@@ -67,12 +90,16 @@ namespace CardAssignment
                     lstSheets.Visibility = Visibility.Visible;
                     lblSheetList.Visibility = Visibility.Visible;
                 }
-                lblProcessing.Foreground = new SolidColorBrush(Color.FromRgb(66,186,42));
+                lblProcessing.Foreground = SuccessColor;
                 lblProcessing.Content = "Success!";
+                if (lstSheets.Items.Count == 1)
+                {
+                    lstSheets.SelectedIndex = 0;
+                }
             }
             catch (Exception ex)
             {
-                lblProcessing.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
+                lblProcessing.Foreground = ErrorColor;
                 lstSheets.Visibility = Visibility.Hidden;
                 lblSheetList.Visibility = Visibility.Hidden;
                 if (ex.ToString().Contains("being used by another process"))
@@ -93,16 +120,43 @@ namespace CardAssignment
         /// <param name="e"></param>
         private void btnProcess_Click(object sender, RoutedEventArgs e)
         {
+            lblCompleted.Visibility = Visibility.Visible;
             lblCompleted.Content = "Processing...";
             NewSheetName = txtNewSheetName.Text.Trim();
-            try
+
+            if (lstSheets.Items.Contains(NewSheetName))
             {
-                ProcessExcel(lstSheets.SelectedValue.ToString());
-                lblCompleted.Content = "Success!";
-            } catch (Exception ex)
+                lblCompleted.Visibility = Visibility.Collapsed;
+                lblError.Foreground = ErrorColor;
+                lblError.Visibility = Visibility.Visible;
+                lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+            }
+            else
             {
-                lblCompleted.Foreground = new SolidColorBrush(Color.FromRgb(255, 58, 14));
-                lblCompleted.Content = "Error!";
+                try
+                {
+                    ProcessExcel(lstSheets.SelectedValue.ToString());
+                    lblCompleted.Foreground = SuccessColor;
+                    lblCompleted.Content = "Success!";
+                }
+                catch (Exception ex)
+                {
+                    lblCompleted.Visibility = Visibility.Collapsed;
+                    lblError.Foreground = ErrorColor;
+                    lblError.Visibility = Visibility.Visible;
+                    if (ex.Message == "An item with the same key has already been added.")
+                    {
+                        lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                    }
+                    else if(ex.ToString().Contains("being used by another process"))
+                    {
+                        lblError.Text = "File is open. Close and try again.";
+                    }
+                    else
+                    {
+                        lblError.Text = "Error occurred!";
+                    }
+                }
             }
         } // btnProcess_Click
 
@@ -113,10 +167,27 @@ namespace CardAssignment
         /// <param name="e"></param>
         private void lstSheets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            lblSheetName.Visibility = Visibility.Visible;
-            txtNewSheetName.Visibility = Visibility.Visible;
-            txtNewSheetName.Text = lstSheets.SelectedValue + "_SendList";
-            btnProcess.Visibility = Visibility.Visible;
+            if (lstSheets.SelectedValue != null)
+            {
+                lblError.Visibility = Visibility.Collapsed;
+                lblSheetName.Visibility = Visibility.Visible;
+                txtNewSheetName.Visibility = Visibility.Visible;
+                txtNewSheetName.Text = lstSheets.SelectedValue + "_SendList";
+
+                if (lstSheets.Items.Contains(txtNewSheetName.Text))
+                {
+                    int sendListCounter = 2;
+
+                    while (lstSheets.Items.Contains($"{txtNewSheetName.Text}{sendListCounter}"))
+                    {
+                        sendListCounter++;
+                    }
+
+                    txtNewSheetName.Text = $"{txtNewSheetName.Text}{sendListCounter}";
+                }
+
+                btnProcess.Visibility = Visibility.Visible;
+            }
         } // lstSheets_SelectionChanged
 
         #endregion
@@ -156,15 +227,15 @@ namespace CardAssignment
                 Moms.Add(newMom);
             }
             // assign each mom the requested number of cards
+            Random rand = new Random();
             foreach (Mom mom in Moms)
             {
                 for (int i = 0; i < mom.CardsRequested; i++)
                 {
-                    mom.ChildrenToSendCards.Add(SelectChild(Moms));
+                    mom.ChildrenToSendCards.Add(SelectChild(Moms, mom, rand));
                 }
             }
             WriteNewSheet(Moms);
-            lblCompleted.Visibility = Visibility.Visible;
         } // ProcessExcel
 
         /// <summary>
@@ -185,29 +256,29 @@ namespace CardAssignment
         /// Selects an individual child from the list of children
         /// </summary>
         /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <param name="currentMom">Mom currently being assigned a child</param>
+        /// <param name="rand">Random object to use for selecting next child</param>
         /// <returns>Child object</returns>
-        private Child SelectChild(List<Mom> Moms)
+        private Child SelectChild(List<Mom> Moms, Mom currentMom, Random rand)
         {
-            List<Mom> availableChildren = (from m in Moms where m.Child != null select m).ToList();
+            List<Child> availableChildren = (from m in Moms where m.Child != null && m != currentMom select m.Child).ToList();
 
-            int maxSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Max();
-            int minSelectedCount = (from c in availableChildren select c.Child.SelectedCount).Min();
+            int maxSelectedCount = (from c in availableChildren select c.SelectedCount).Max();
+            int minSelectedCount = (from c in availableChildren select c.SelectedCount).Min();
             Child selected = null;
-            Random rand = new Random();
-
+            
             // grab random child object, unless a child has already been selected this round
             if (maxSelectedCount == minSelectedCount)
             {
-                selected = Moms[rand.Next(0, Moms.Count())].Child;
-                selected.SelectedCount++;
+                selected = availableChildren[rand.Next(0, availableChildren.Count())];
             } else
             {
                 // ensure that all children have a fair chance at being selected
-                List<Mom> tempMoms = (from c in availableChildren where c.Child.SelectedCount == minSelectedCount select c).ToList();
-                selected = tempMoms[rand.Next(0, tempMoms.Count())].Child;
-                selected.SelectedCount++;
+                List<Child> tempChildren = (from c in availableChildren where c.SelectedCount == minSelectedCount select c).ToList();
+                selected = tempChildren[rand.Next(0, tempChildren.Count())];
             }
 
+            selected.SelectedCount++;
             return selected;
         } // SelectChild
 
