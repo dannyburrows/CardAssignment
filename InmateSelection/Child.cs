@@ -11,13 +11,14 @@
         public string State { get; set; }
         public string Zip { get; set; }
         public int SelectedCount { get; set; }
+        public bool SkipChild { get; set; }
 
         public Child()
         {
 
         }
 
-        public Child(string Name, string DOC, string Facility, string Address1, string Address2, string City, string State, string Zip)
+        public Child(string Name, string DOC, string Facility, string Address1, string Address2, string City, string State, string Zip, bool SkipChildSkipSon)
         {
             this.Name = Name;
             this.DOC = DOC;
@@ -27,6 +28,7 @@
             this.City = City;
             this.State = State;
             this.Zip = Zip;
+            this.SkipChild = SkipChild;
         }
     }
 }

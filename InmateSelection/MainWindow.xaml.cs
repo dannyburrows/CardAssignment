@@ -261,7 +261,7 @@ namespace CardAssignment
         /// <returns>Child object</returns>
         private Child SelectChild(List<Mom> Moms, Mom currentMom, Random rand)
         {
-            List<Child> availableChildren = (from m in Moms where m.Child != null && m != currentMom select m.Child).ToList();
+            List<Child> availableChildren = (from m in Moms where m.Child != null && m != currentMom && !m.Child.SkipChild select m.Child).ToList();
 
             int maxSelectedCount = (from c in availableChildren select c.SelectedCount).Max();
             int minSelectedCount = (from c in availableChildren select c.SelectedCount).Min();

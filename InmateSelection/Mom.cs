@@ -28,7 +28,7 @@ namespace CardAssignment
             }
 
             Name = Row["Mom"].ToString();
-            if (!(Row["Child"] == DBNull.Value || string.IsNullOrEmpty(Row["Child"].ToString())))
+            if (!(Row["Child"] == DBNull.Value || string.IsNullOrEmpty(Row["Child"].ToString()) || Row["Child"].ToString().ToLower().Contains("no son")))
             {
                 Child = new Child
                 {
@@ -39,7 +39,8 @@ namespace CardAssignment
                     Address2 = Row["Address #2"].ToString(),
                     City = Row["City"].ToString(),
                     State = Row["State"].ToString(),
-                    Zip = Row["Zip"].ToString()
+                    Zip = Row["Zip"].ToString(),
+                    SkipChild = (Row["SkipChild"].ToString().ToLower() == "x")
                 };
             }
         }
