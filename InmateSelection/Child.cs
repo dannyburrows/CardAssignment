@@ -10,7 +10,7 @@
         public string City { get; set; }
         public string State { get; set; }
         public string Zip { get; set; }
-        public int SelectedCount { get; set; }
+        public int CardsNeeded { get; set; }
         public bool SkipChild { get; set; }
 
         public Child()
@@ -18,7 +18,7 @@
 
         }
 
-        public Child(string Name, string DOC, string Facility, string Address1, string Address2, string City, string State, string Zip, bool SkipChildSkipSon)
+        public Child(string Name, string DOC, string Facility, string Address1, string Address2, string City, string State, string Zip, bool SkipChild)
         {
             this.Name = Name;
             this.DOC = DOC;
