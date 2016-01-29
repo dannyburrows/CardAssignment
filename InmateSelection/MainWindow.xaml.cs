@@ -192,6 +192,129 @@ namespace CardAssignment
 
         #endregion
 
+        #region "Card Assignment"
+
+        private static void AdjustNumberOfCardsRequested(List<Mom> Moms)
+        {
+            foreach (Mom currentMom in Moms)
+            {
+                //can't request more cards than there are available children
+                int maxCardCount = Moms.Count(m => m.Name != currentMom.Name && m.HasParticipatingChild);
+
+                if (currentMom.CardsRequested > maxCardCount)
+                {
+                    currentMom.CardsRequested = maxCardCount;
+                }
+            }
+        }
+
+        private static void SetNumberOfCardsNeeded(List<Mom> Moms)
+        {
+            foreach (Mom momWithParticipatingChild in Moms.Where(m => m.HasParticipatingChild))
+            {
+                //each child will receive at least one card
+                momWithParticipatingChild.Child.CardsNeeded = Math.Max(1, momWithParticipatingChild.CardsRequested);
+            }
+
+            AdjustNumberOfCardsNeeded(Moms);
+        }
+
+        private static void AdjustNumberOfCardsNeeded(List<Mom> Moms)
+        {
+            int totalCardsRequested = Moms.Sum(m => m.CardsRequested);
+            int totalCardsToSend = Moms.Where(m => m.HasParticipatingChild).Sum(m => m.Child.CardsNeeded);
+
+            if (totalCardsToSend > totalCardsRequested)
+            {
+                HandleInsufficientCardsRequested(Moms, totalCardsToSend, totalCardsRequested);
+            }
+            else if (totalCardsRequested > totalCardsToSend)
+            {
+                HandleExtraCardsRequested(Moms, totalCardsRequested, totalCardsToSend);
+            }
+        }
+
+        private static void HandleInsufficientCardsRequested(List<Mom> Moms, int totalCardsToSend, int totalCardsRequested)
+        {
+            //children receiving the most cards will each "donate" one card to the children whose moms aren't sending cards
+            List<Child> childrenDonatingCards = Moms.Where(m => m.HasParticipatingChild)
+                                                    .Select(m => m.Child)
+                                                    .OrderByDescending(c => c.CardsNeeded)
+                                                    .Take(totalCardsToSend - totalCardsRequested)
+                                                    .ToList();
+
+            foreach (Child childDonatingCard in childrenDonatingCards)
+            {
+                childDonatingCard.CardsNeeded--;
+            }
+        }
+
+        private static void HandleExtraCardsRequested(List<Mom> Moms, int totalCardsRequested, int totalCardsToSend)
+        {
+            List<Child> childrenReceivingExtraCards = Moms.Where(m => m.HasParticipatingChild)
+                                                            .Select(m => m.Child)
+                                                            .OrderBy(c => c.CardsNeeded)
+                                                            .Take(totalCardsRequested - totalCardsToSend)
+                                                            .ToList();
+
+            foreach (Child childReceivingExtraCard in childrenReceivingExtraCards)
+            {
+                childReceivingExtraCard.CardsNeeded++;
+            }
+        }
+
+        private void AssignCards(List<Mom> Moms)
+        {
+            // assign each mom the requested number of cards
+            foreach (Mom currentMom in Moms.OrderByDescending(m => Moms.Count(m2 => m2.Name == m.Name))
+                .ThenByDescending(m => m.CardsRequested))
+            {
+                currentMom.ChildrenToSendCards.AddRange(SelectChildren(Moms, currentMom, currentMom.CardsRequested));
+            }
+        }
+
+        /// <summary>
+        /// Selects children from the list of children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <param name="currentMom">Mom currently being assigned a child</param>
+        /// <param name="numberToSelect">Number of children to select</param>
+        /// <returns>Child object</returns>
+        private List<Child> SelectChildren(List<Mom> Moms, Mom currentMom, int numberToSelect)
+        {
+            List<Child> availableChildren = Moms.Where(m => m.HasParticipatingChild && m.Name != currentMom.Name)
+                                                .Select(m => m.Child)
+                                                .Where(c => c.CardsNeeded > 0
+                                                            && !Moms.Any(m => m.Name == currentMom.Name
+                                                                                && m.ChildrenToSendCards.Any(cc => cc == c)))
+                                                .ToList();
+
+            List<Child> selected = availableChildren.OrderByDescending(c => c.CardsNeeded)
+                                                    .ThenBy(c => new Guid())
+                                                    .Take(numberToSelect)
+                                                    .ToList();
+
+            foreach (Child selectedChild in selected)
+            {
+                selectedChild.CardsNeeded--;
+            }
+
+            return selected;
+        } // SelectChildren
+
+        private void CheckForUnassignedCards(List<Mom> Moms)
+        {
+            if (Moms.Any(m => m.CardsRequested != m.ChildrenToSendCards.Count)
+                || Moms.Any(m => m.HasParticipatingChild && m.Child.CardsNeeded > 0))
+            {
+                lblError.Foreground = ErrorColor;
+                lblError.Visibility = Visibility.Visible;
+                lblError.Text = "Not all cards were assigned.";
+            }
+        }
+
+        #endregion
+
         #region "Excel"
 
         /// <summary>
