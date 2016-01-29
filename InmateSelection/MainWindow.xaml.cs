@@ -267,7 +267,7 @@ namespace CardAssignment
         {
             // assign each mom the requested number of cards
             foreach (Mom currentMom in Moms.OrderByDescending(m => Moms.Count(m2 => m2.Name == m.Name))
-                .ThenByDescending(m => m.CardsRequested))
+                                            .ThenByDescending(m => m.CardsRequested))
             {
                 currentMom.ChildrenToSendCards.AddRange(SelectChildren(Moms, currentMom, currentMom.CardsRequested));
             }
@@ -289,17 +289,17 @@ namespace CardAssignment
                                                                                 && m.ChildrenToSendCards.Any(cc => cc == c)))
                                                 .ToList();
 
-            List<Child> selected = availableChildren.OrderByDescending(c => c.CardsNeeded)
-                                                    .ThenBy(c => new Guid())
-                                                    .Take(numberToSelect)
-                                                    .ToList();
+            List<Child> selectedChildren = availableChildren.OrderByDescending(c => c.CardsNeeded)
+                                                            .ThenBy(c => new Guid())
+                                                            .Take(numberToSelect)
+                                                            .ToList();
 
-            foreach (Child selectedChild in selected)
+            foreach (Child selectedChild in selectedChildren)
             {
                 selectedChild.CardsNeeded--;
             }
 
-            return selected;
+            return selectedChildren;
         } // SelectChildren
 
         private void CheckForUnassignedCards(List<Mom> Moms)
