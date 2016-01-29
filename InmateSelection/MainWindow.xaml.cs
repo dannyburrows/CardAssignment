@@ -342,13 +342,7 @@ namespace CardAssignment
         /// <param name="SheetName">Name that will be assigned to the sheet</param>
         private void ProcessExcel(string SheetName)
         {
-            List<Mom> Moms = new List<Mom>();
-            // create the list
-            foreach (DataRow row in ExcelData.Tables[SheetName].Rows)
-            {
-                Mom newMom = new Mom(row);
-                Moms.Add(newMom);
-            }
+            List<Mom> Moms = GetMoms(SheetName);
 
             AdjustNumberOfCardsRequested(Moms);
             SetNumberOfCardsNeeded(Moms);
@@ -357,6 +351,19 @@ namespace CardAssignment
             
             WriteNewSheet(Moms);
         } // ProcessExcel
+
+        private List<Mom> GetMoms(string SheetName)
+        {
+            List<Mom> Moms = new List<Mom>();
+            
+            foreach (DataRow row in ExcelData.Tables[SheetName].Rows)
+            {
+                Mom newMom = new Mom(row);
+                Moms.Add(newMom);
+            }
+
+            return Moms;
+        }
 
         /// <summary>
         /// Updates the existing file with the new worksheet information
