@@ -349,15 +349,12 @@ namespace CardAssignment
                 Mom newMom = new Mom(row);
                 Moms.Add(newMom);
             }
-            // assign each mom the requested number of cards
-            Random rand = new Random();
-            foreach (Mom mom in Moms)
-            {
-                for (int i = 0; i < mom.CardsRequested; i++)
-                {
-                    mom.ChildrenToSendCards.Add(SelectChild(Moms, mom, rand));
-                }
-            }
+
+            AdjustNumberOfCardsRequested(Moms);
+            SetNumberOfCardsNeeded(Moms);
+            AssignCards(Moms);
+            CheckForUnassignedCards(Moms);
+            
             WriteNewSheet(Moms);
         } // ProcessExcel
 
