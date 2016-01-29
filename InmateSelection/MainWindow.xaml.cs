@@ -373,36 +373,6 @@ namespace CardAssignment
         #endregion
 
         /// <summary>
-        /// Selects an individual child from the list of children
-        /// </summary>
-        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
-        /// <param name="currentMom">Mom currently being assigned a child</param>
-        /// <param name="rand">Random object to use for selecting next child</param>
-        /// <returns>Child object</returns>
-        private Child SelectChild(List<Mom> Moms, Mom currentMom, Random rand)
-        {
-            List<Child> availableChildren = (from m in Moms where m.Child != null && m != currentMom && !m.Child.SkipChild select m.Child).ToList();
-
-            int maxSelectedCount = (from c in availableChildren select c.SelectedCount).Max();
-            int minSelectedCount = (from c in availableChildren select c.SelectedCount).Min();
-            Child selected = null;
-            
-            // grab random child object, unless a child has already been selected this round
-            if (maxSelectedCount == minSelectedCount)
-            {
-                selected = availableChildren[rand.Next(0, availableChildren.Count())];
-            } else
-            {
-                // ensure that all children have a fair chance at being selected
-                List<Child> tempChildren = (from c in availableChildren where c.SelectedCount == minSelectedCount select c).ToList();
-                selected = tempChildren[rand.Next(0, tempChildren.Count())];
-            }
-
-            selected.SelectedCount++;
-            return selected;
-        } // SelectChild
-
-        /// <summary>
         /// Converts a List of Moms into a DataTable that can be converted into an excel document
         /// </summary>
         /// <param name="Moms">List of previously filled out mom objects</param>
@@ -437,7 +407,7 @@ namespace CardAssignment
                 
                 convertedTable.Rows.Add(row);
                 // add a row for each child that was assigned to a mom
-                foreach(Child child in mom.ChildrenToSendCards)
+                foreach(Child child in mom.ChildrenToSendCards.OrderBy(c => c.Name))
                 {
                     DataRow childRow = convertedTable.NewRow();
                     childRow["Cards Requested"] = null;
