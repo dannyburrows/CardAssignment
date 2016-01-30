@@ -32,21 +32,9 @@ namespace CardAssignment
             get; set;
         }
 
-        private SolidColorBrush ErrorColor
-        {
-            get
-            {
-                return new SolidColorBrush(Color.FromRgb(255, 58, 14));
-            }
-        }
+        private SolidColorBrush ErrorColor => new SolidColorBrush(Color.FromRgb(255, 58, 14));
 
-        private SolidColorBrush SuccessColor
-        {
-            get
-            {
-                return new SolidColorBrush(Color.FromRgb(66, 186, 42));
-            }
-        }
+        private SolidColorBrush SuccessColor => new SolidColorBrush(Color.FromRgb(66, 186, 42));
 
         public MainWindow()
         {   
@@ -168,7 +156,7 @@ namespace CardAssignment
             lblError.Foreground = ErrorColor;
             lblError.Visibility = Visibility.Visible;
             lblError.Text = errorMessage;
-        }
+        } // DisplayError
 
         /// <summary>
         /// Captures the list selection change
@@ -220,7 +208,7 @@ namespace CardAssignment
                     currentMom.CardsRequested = maxCardCount;
                 }
             }
-        }
+        } // AdjustNumberOfCardsRequested
 
         /// <summary>
         /// Sets number of cards needed for Children
@@ -234,7 +222,7 @@ namespace CardAssignment
             }
 
             AdjustNumberOfCardsNeeded(Moms);
-        }
+        } // SetNumberOfCardsNeeded
 
         /// <summary>
         /// Gets default number of cards needed for child based on number of cards requested by mom
@@ -259,7 +247,7 @@ namespace CardAssignment
             }
 
             return cardsNeeded;
-        }
+        } // GetDefaultNumberOfCardsNeeded
 
         /// <summary>
         /// Adjusts number of cards needed for Children
@@ -277,7 +265,7 @@ namespace CardAssignment
             {
                 HandleExtraCardsRequested(Moms, Moms.Sum(m => m.CardsRequested) - Moms.Sum(m => m.CardsNeededForChild));
             }
-        }
+        } // AdjustNumberOfCardsNeeded
 
         /// <summary>
         /// Handles insufficient cards requested by subtracting cards needed for Children
@@ -297,7 +285,7 @@ namespace CardAssignment
             {
                 childDonatingCard.CardsNeeded--;
             }
-        }
+        } // HandleInsufficientCardsRequested
 
         /// <summary>
         /// Handles extra cards requested by adding cards needed for Children
@@ -316,7 +304,7 @@ namespace CardAssignment
             {
                 childReceivingExtraCard.CardsNeeded++;
             }
-        }
+        } // HandleExtraCardsRequested
 
         /// <summary>
         /// Assigns cards by adding children to mom's lists of children to send cards
@@ -330,7 +318,7 @@ namespace CardAssignment
             {
                 currentMom.ChildrenToSendCards.AddRange(SelectChildren(Moms, currentMom, currentMom.CardsRequested));
             }
-        }
+        } // AssignCards
 
         /// <summary>
         /// Selects children from the list of children
@@ -338,7 +326,7 @@ namespace CardAssignment
         /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         /// <param name="currentMom">Mom currently being assigned a child</param>
         /// <param name="numberToSelect">Number of children to select</param>
-        /// <returns>Child object</returns>
+        /// <returns>List of Child objects</returns>
         private List<Child> SelectChildren(List<Mom> Moms, Mom currentMom, int numberToSelect)
         {
             List<Child> availableChildren = Moms.Where(m => m.HasParticipatingChild && m.Name != currentMom.Name)
@@ -365,7 +353,7 @@ namespace CardAssignment
         /// Checks for mismatches in number of cards requested and number of cards needed
         /// </summary>
         /// <param name="Moms">List of Moms serialized from Excel sheet</param>
-        private void CheckForUnassignedCards(List<Mom> Moms)
+        private void CheckCounts(List<Mom> Moms)
         {
             if (Moms.Any(m => m.CardsNeededForChild > 0))
             {
@@ -380,7 +368,7 @@ namespace CardAssignment
             {
                 DisplayError("Mom(s) with too many cards assigned.");
             }
-        }
+        } // CheckCounts
 
         #endregion
 
@@ -416,7 +404,7 @@ namespace CardAssignment
             AdjustNumberOfCardsRequested(Moms);
             SetNumberOfCardsNeeded(Moms);
             AssignCards(Moms);
-            CheckForUnassignedCards(Moms);
+            CheckCounts(Moms);
             
             WriteNewSheet(Moms);
         } // ProcessExcel
@@ -437,7 +425,7 @@ namespace CardAssignment
             }
 
             return Moms;
-        }
+        } // GetMoms
 
         /// <summary>
         /// Updates the existing file with the new worksheet information
