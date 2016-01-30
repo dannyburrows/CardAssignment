@@ -309,10 +309,18 @@ namespace CardAssignment
 
         private void CheckForUnassignedCards(List<Mom> Moms)
         {
-            if (Moms.Any(m => m.CardsRequested != m.ChildrenToSendCards.Count)
-                || Moms.Any(m => m.HasParticipatingChild && m.Child.CardsNeeded > 0))
+            if (Moms.Any(m => m.CardsNeededForChild > 0))
             {
-                DisplayError("Not all cards were assigned.");
+                //this could be due to not enough cards being requested for the number of participating children
+                DisplayError("Child(ren) with not enough cards assigned.");
+            }
+            else if (Moms.Any(m => m.CardsRequested > m.ChildrenToSendCards.Count))
+            {
+                DisplayError("Mom(s) with not enough cards assigned.");
+            }
+            else if (Moms.Any(m => m.CardsRequested < m.ChildrenToSendCards.Count))
+            {
+                DisplayError("Mom(s) with too many cards assigned.");
             }
         }
 
