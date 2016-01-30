@@ -126,10 +126,8 @@ namespace CardAssignment
 
             if (lstSheets.Items.Contains(NewSheetName))
             {
-                lblCompleted.Visibility = Visibility.Collapsed;
-                lblError.Foreground = ErrorColor;
-                lblError.Visibility = Visibility.Visible;
-                lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                string errorMessage = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                DisplayError(errorMessage);
             }
             else
             {
@@ -141,24 +139,32 @@ namespace CardAssignment
                 }
                 catch (Exception ex)
                 {
-                    lblCompleted.Visibility = Visibility.Collapsed;
-                    lblError.Foreground = ErrorColor;
-                    lblError.Visibility = Visibility.Visible;
+                    string errorMessage;
                     if (ex.Message == "An item with the same key has already been added.")
                     {
-                        lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                        errorMessage = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
                     }
                     else if(ex.ToString().Contains("being used by another process"))
                     {
-                        lblError.Text = "File is open. Close and try again.";
+                        errorMessage = "File is open. Close and try again.";
                     }
                     else
                     {
-                        lblError.Text = "Error occurred!";
+                        errorMessage = "Error occurred!";
                     }
+
+                    DisplayError(errorMessage);
                 }
             }
         } // btnProcess_Click
+
+        private void DisplayError(string errorMessage)
+        {
+            lblCompleted.Visibility = Visibility.Collapsed;
+            lblError.Foreground = ErrorColor;
+            lblError.Visibility = Visibility.Visible;
+            lblError.Text = errorMessage;
+        }
 
         /// <summary>
         /// Captures the list selection change
@@ -307,9 +313,7 @@ namespace CardAssignment
             if (Moms.Any(m => m.CardsRequested != m.ChildrenToSendCards.Count)
                 || Moms.Any(m => m.HasParticipatingChild && m.Child.CardsNeeded > 0))
             {
-                lblError.Foreground = ErrorColor;
-                lblError.Visibility = Visibility.Visible;
-                lblError.Text = "Not all cards were assigned.";
+                DisplayError("Not all cards were assigned.");
             }
         }
 
