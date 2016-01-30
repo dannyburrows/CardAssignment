@@ -158,6 +158,10 @@ namespace CardAssignment
             }
         } // btnProcess_Click
 
+        /// <summary>
+        /// Displays the error message
+        /// </summary>
+        /// <param name="errorMessage">The error message to display</param>
         private void DisplayError(string errorMessage)
         {
             lblCompleted.Visibility = Visibility.Collapsed;
@@ -200,6 +204,10 @@ namespace CardAssignment
 
         #region "Card Assignment"
 
+        /// <summary>
+        /// Adjusts number of cards requested for Moms
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private static void AdjustNumberOfCardsRequested(List<Mom> Moms)
         {
             foreach (Mom currentMom in Moms)
@@ -214,6 +222,10 @@ namespace CardAssignment
             }
         }
 
+        /// <summary>
+        /// Sets number of cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private static void SetNumberOfCardsNeeded(List<Mom> Moms)
         {
             foreach (Mom momWithParticipatingChild in Moms.Where(m => m.HasParticipatingChild))
@@ -224,7 +236,11 @@ namespace CardAssignment
 
             AdjustNumberOfCardsNeeded(Moms);
         }
-        
+
+        /// <summary>
+        /// Adjusts number of cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private static void AdjustNumberOfCardsNeeded(List<Mom> Moms)
         {
             while (Moms.Sum(m => m.CardsNeededForChild) > Moms.Sum(m => m.CardsRequested)
@@ -239,6 +255,11 @@ namespace CardAssignment
             }
         }
 
+        /// <summary>
+        /// Handles insufficient cards requested by subtracting cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <param name="totalCardsToSubtract">Total number of cards to subtract from Children</param>
         private static void HandleInsufficientCardsRequested(List<Mom> Moms, int totalCardsToSubtract)
         {
             //children receiving the most cards will each "donate" one card to the children whose moms aren't sending cards
@@ -254,6 +275,11 @@ namespace CardAssignment
             }
         }
 
+        /// <summary>
+        /// Handles extra cards requested by adding cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <param name="totalCardsToAdd">Total number of cards to add to Children</param>
         private static void HandleExtraCardsRequested(List<Mom> Moms, int totalCardsToAdd)
         {
             List<Child> childrenReceivingExtraCards = Moms.Where(m => m.HasParticipatingChild)
@@ -268,6 +294,10 @@ namespace CardAssignment
             }
         }
 
+        /// <summary>
+        /// Assigns cards by adding children to mom's lists of children to send cards
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private void AssignCards(List<Mom> Moms)
         {
             // assign each mom the requested number of cards
@@ -307,6 +337,10 @@ namespace CardAssignment
             return selectedChildren;
         } // SelectChildren
 
+        /// <summary>
+        /// Checks for mismatches in number of cards requested and number of cards needed
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private void CheckForUnassignedCards(List<Mom> Moms)
         {
             if (Moms.Any(m => m.CardsNeededForChild > 0))
@@ -363,6 +397,11 @@ namespace CardAssignment
             WriteNewSheet(Moms);
         } // ProcessExcel
 
+        /// <summary>
+        /// Checks for mismatches in number of cards requested and number of cards needed
+        /// </summary>
+        /// <param name="SheetName">Name of Excel sheet containing Mom data</param>
+        /// <returns>List of Moms serialized from Excel sheet</returns>
         private List<Mom> GetMoms(string SheetName)
         {
             List<Mom> Moms = new List<Mom>();
