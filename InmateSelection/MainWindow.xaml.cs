@@ -224,29 +224,28 @@ namespace CardAssignment
 
             AdjustNumberOfCardsNeeded(Moms);
         }
-
+        
         private static void AdjustNumberOfCardsNeeded(List<Mom> Moms)
         {
-            int totalCardsRequested = Moms.Sum(m => m.CardsRequested);
-            int totalCardsToSend = Moms.Where(m => m.HasParticipatingChild).Sum(m => m.Child.CardsNeeded);
-
-            if (totalCardsToSend > totalCardsRequested)
+            while (Moms.Sum(m => m.CardsNeededForChild) > Moms.Sum(m => m.CardsRequested)
+                && Moms.Any(m => m.CardsNeededForChild > 1))
             {
-                HandleInsufficientCardsRequested(Moms, totalCardsToSend, totalCardsRequested);
+                HandleInsufficientCardsRequested(Moms, Moms.Sum(m => m.CardsNeededForChild) - Moms.Sum(m => m.CardsRequested));
             }
-            else if (totalCardsRequested > totalCardsToSend)
+
+            while (Moms.Sum(m => m.CardsRequested) > Moms.Sum(m => m.CardsNeededForChild))
             {
-                HandleExtraCardsRequested(Moms, totalCardsRequested, totalCardsToSend);
+                HandleExtraCardsRequested(Moms, Moms.Sum(m => m.CardsRequested) - Moms.Sum(m => m.CardsNeededForChild));
             }
         }
 
-        private static void HandleInsufficientCardsRequested(List<Mom> Moms, int totalCardsToSend, int totalCardsRequested)
+        private static void HandleInsufficientCardsRequested(List<Mom> Moms, int totalCardsToSubtract)
         {
             //children receiving the most cards will each "donate" one card to the children whose moms aren't sending cards
-            List<Child> childrenDonatingCards = Moms.Where(m => m.HasParticipatingChild)
+            List<Child> childrenDonatingCards = Moms.Where(m => m.CardsNeededForChild > 1)
                                                     .Select(m => m.Child)
                                                     .OrderByDescending(c => c.CardsNeeded)
-                                                    .Take(totalCardsToSend - totalCardsRequested)
+                                                    .Take(totalCardsToSubtract)
                                                     .ToList();
 
             foreach (Child childDonatingCard in childrenDonatingCards)
@@ -255,12 +254,12 @@ namespace CardAssignment
             }
         }
 
-        private static void HandleExtraCardsRequested(List<Mom> Moms, int totalCardsRequested, int totalCardsToSend)
+        private static void HandleExtraCardsRequested(List<Mom> Moms, int totalCardsToAdd)
         {
             List<Child> childrenReceivingExtraCards = Moms.Where(m => m.HasParticipatingChild)
                                                             .Select(m => m.Child)
                                                             .OrderBy(c => c.CardsNeeded)
-                                                            .Take(totalCardsRequested - totalCardsToSend)
+                                                            .Take(totalCardsToAdd)
                                                             .ToList();
 
             foreach (Child childReceivingExtraCard in childrenReceivingExtraCards)
