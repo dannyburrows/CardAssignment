@@ -32,21 +32,9 @@ namespace CardAssignment
             get; set;
         }
 
-        private SolidColorBrush ErrorColor
-        {
-            get
-            {
-                return new SolidColorBrush(Color.FromRgb(255, 58, 14));
-            }
-        }
+        private SolidColorBrush ErrorColor => new SolidColorBrush(Color.FromRgb(255, 58, 14));
 
-        private SolidColorBrush SuccessColor
-        {
-            get
-            {
-                return new SolidColorBrush(Color.FromRgb(66, 186, 42));
-            }
-        }
+        private SolidColorBrush SuccessColor => new SolidColorBrush(Color.FromRgb(66, 186, 42));
 
         public MainWindow()
         {   
@@ -126,10 +114,8 @@ namespace CardAssignment
 
             if (lstSheets.Items.Contains(NewSheetName))
             {
-                lblCompleted.Visibility = Visibility.Collapsed;
-                lblError.Foreground = ErrorColor;
-                lblError.Visibility = Visibility.Visible;
-                lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                string errorMessage = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                DisplayError(errorMessage);
             }
             else
             {
@@ -141,24 +127,36 @@ namespace CardAssignment
                 }
                 catch (Exception ex)
                 {
-                    lblCompleted.Visibility = Visibility.Collapsed;
-                    lblError.Foreground = ErrorColor;
-                    lblError.Visibility = Visibility.Visible;
+                    string errorMessage;
                     if (ex.Message == "An item with the same key has already been added.")
                     {
-                        lblError.Text = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
+                        errorMessage = NewSheetName + " sheet already exists. Change the name of the new sheet and try again.";
                     }
                     else if(ex.ToString().Contains("being used by another process"))
                     {
-                        lblError.Text = "File is open. Close and try again.";
+                        errorMessage = "File is open. Close and try again.";
                     }
                     else
                     {
-                        lblError.Text = "Error occurred!";
+                        errorMessage = "Error occurred!";
                     }
+
+                    DisplayError(errorMessage);
                 }
             }
         } // btnProcess_Click
+
+        /// <summary>
+        /// Displays the error message
+        /// </summary>
+        /// <param name="errorMessage">The error message to display</param>
+        private void DisplayError(string errorMessage)
+        {
+            lblCompleted.Visibility = Visibility.Collapsed;
+            lblError.Foreground = ErrorColor;
+            lblError.Visibility = Visibility.Visible;
+            lblError.Text = errorMessage;
+        } // DisplayError
 
         /// <summary>
         /// Captures the list selection change
@@ -194,6 +192,10 @@ namespace CardAssignment
 
         #region "Card Assignment"
 
+        /// <summary>
+        /// Adjusts number of cards requested for Moms
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private static void AdjustNumberOfCardsRequested(List<Mom> Moms)
         {
             foreach (Mom currentMom in Moms)
@@ -206,63 +208,108 @@ namespace CardAssignment
                     currentMom.CardsRequested = maxCardCount;
                 }
             }
-        }
+        } // AdjustNumberOfCardsRequested
 
+        /// <summary>
+        /// Sets number of cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private static void SetNumberOfCardsNeeded(List<Mom> Moms)
         {
             foreach (Mom momWithParticipatingChild in Moms.Where(m => m.HasParticipatingChild))
             {
-                //each child will receive at least one card
-                momWithParticipatingChild.Child.CardsNeeded = Math.Max(1, momWithParticipatingChild.CardsRequested);
+                momWithParticipatingChild.Child.CardsNeeded = GetDefaultNumberOfCardsNeeded(momWithParticipatingChild.CardsRequested);
             }
 
             AdjustNumberOfCardsNeeded(Moms);
-        }
+        } // SetNumberOfCardsNeeded
 
+        /// <summary>
+        /// Gets default number of cards needed for child based on number of cards requested by mom
+        /// </summary>
+        /// <param name="cardsRequested">Number of cards requested by mom</param>
+        /// <returns>Default number of cards needed for child</returns>
+        private static int GetDefaultNumberOfCardsNeeded(int cardsRequested)
+        {
+            int cardsNeeded;
+
+            if (cardsRequested >= 8)
+            {
+                cardsNeeded = cardsRequested - 2;
+            }
+            else if (cardsRequested <= 5)
+            {
+                cardsNeeded = 4;
+            }
+            else
+            {
+                cardsNeeded = cardsRequested - 1;
+            }
+
+            return cardsNeeded;
+        } // GetDefaultNumberOfCardsNeeded
+
+        /// <summary>
+        /// Adjusts number of cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private static void AdjustNumberOfCardsNeeded(List<Mom> Moms)
         {
-            int totalCardsRequested = Moms.Sum(m => m.CardsRequested);
-            int totalCardsToSend = Moms.Where(m => m.HasParticipatingChild).Sum(m => m.Child.CardsNeeded);
-
-            if (totalCardsToSend > totalCardsRequested)
+            while (Moms.Sum(m => m.CardsNeededForChild) > Moms.Sum(m => m.CardsRequested)
+                && Moms.Any(m => m.CardsNeededForChild > 1))
             {
-                HandleInsufficientCardsRequested(Moms, totalCardsToSend, totalCardsRequested);
+                HandleInsufficientCardsRequested(Moms, Moms.Sum(m => m.CardsNeededForChild) - Moms.Sum(m => m.CardsRequested));
             }
-            else if (totalCardsRequested > totalCardsToSend)
-            {
-                HandleExtraCardsRequested(Moms, totalCardsRequested, totalCardsToSend);
-            }
-        }
 
-        private static void HandleInsufficientCardsRequested(List<Mom> Moms, int totalCardsToSend, int totalCardsRequested)
+            while (Moms.Sum(m => m.CardsRequested) > Moms.Sum(m => m.CardsNeededForChild))
+            {
+                HandleExtraCardsRequested(Moms, Moms.Sum(m => m.CardsRequested) - Moms.Sum(m => m.CardsNeededForChild));
+            }
+        } // AdjustNumberOfCardsNeeded
+
+        /// <summary>
+        /// Handles insufficient cards requested by subtracting cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <param name="totalCardsToSubtract">Total number of cards to subtract from Children</param>
+        private static void HandleInsufficientCardsRequested(List<Mom> Moms, int totalCardsToSubtract)
         {
             //children receiving the most cards will each "donate" one card to the children whose moms aren't sending cards
-            List<Child> childrenDonatingCards = Moms.Where(m => m.HasParticipatingChild)
+            List<Child> childrenDonatingCards = Moms.Where(m => m.CardsNeededForChild > 1)
                                                     .Select(m => m.Child)
                                                     .OrderByDescending(c => c.CardsNeeded)
-                                                    .Take(totalCardsToSend - totalCardsRequested)
+                                                    .Take(totalCardsToSubtract)
                                                     .ToList();
 
             foreach (Child childDonatingCard in childrenDonatingCards)
             {
                 childDonatingCard.CardsNeeded--;
             }
-        }
+        } // HandleInsufficientCardsRequested
 
-        private static void HandleExtraCardsRequested(List<Mom> Moms, int totalCardsRequested, int totalCardsToSend)
+        /// <summary>
+        /// Handles extra cards requested by adding cards needed for Children
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        /// <param name="totalCardsToAdd">Total number of cards to add to Children</param>
+        private static void HandleExtraCardsRequested(List<Mom> Moms, int totalCardsToAdd)
         {
             List<Child> childrenReceivingExtraCards = Moms.Where(m => m.HasParticipatingChild)
                                                             .Select(m => m.Child)
                                                             .OrderBy(c => c.CardsNeeded)
-                                                            .Take(totalCardsRequested - totalCardsToSend)
+                                                            .Take(totalCardsToAdd)
                                                             .ToList();
 
             foreach (Child childReceivingExtraCard in childrenReceivingExtraCards)
             {
                 childReceivingExtraCard.CardsNeeded++;
             }
-        }
+        } // HandleExtraCardsRequested
 
+        /// <summary>
+        /// Assigns cards by adding children to mom's lists of children to send cards
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         private void AssignCards(List<Mom> Moms)
         {
             // assign each mom the requested number of cards
@@ -271,7 +318,7 @@ namespace CardAssignment
             {
                 currentMom.ChildrenToSendCards.AddRange(SelectChildren(Moms, currentMom, currentMom.CardsRequested));
             }
-        }
+        } // AssignCards
 
         /// <summary>
         /// Selects children from the list of children
@@ -279,7 +326,7 @@ namespace CardAssignment
         /// <param name="Moms">List of Moms serialized from Excel sheet</param>
         /// <param name="currentMom">Mom currently being assigned a child</param>
         /// <param name="numberToSelect">Number of children to select</param>
-        /// <returns>Child object</returns>
+        /// <returns>List of Child objects</returns>
         private List<Child> SelectChildren(List<Mom> Moms, Mom currentMom, int numberToSelect)
         {
             List<Child> availableChildren = Moms.Where(m => m.HasParticipatingChild && m.Name != currentMom.Name)
@@ -302,16 +349,26 @@ namespace CardAssignment
             return selectedChildren;
         } // SelectChildren
 
-        private void CheckForUnassignedCards(List<Mom> Moms)
+        /// <summary>
+        /// Checks for mismatches in number of cards requested and number of cards needed
+        /// </summary>
+        /// <param name="Moms">List of Moms serialized from Excel sheet</param>
+        private void CheckCounts(List<Mom> Moms)
         {
-            if (Moms.Any(m => m.CardsRequested != m.ChildrenToSendCards.Count)
-                || Moms.Any(m => m.HasParticipatingChild && m.Child.CardsNeeded > 0))
+            if (Moms.Any(m => m.CardsNeededForChild > 0))
             {
-                lblError.Foreground = ErrorColor;
-                lblError.Visibility = Visibility.Visible;
-                lblError.Text = "Not all cards were assigned.";
+                //this could be due to not enough cards being requested for the number of participating children
+                DisplayError("Child(ren) with not enough cards assigned.");
             }
-        }
+            else if (Moms.Any(m => m.CardsRequested > m.ChildrenToSendCards.Count))
+            {
+                DisplayError("Mom(s) with not enough cards assigned.");
+            }
+            else if (Moms.Any(m => m.CardsRequested < m.ChildrenToSendCards.Count))
+            {
+                DisplayError("Mom(s) with too many cards assigned.");
+            }
+        } // CheckCounts
 
         #endregion
 
@@ -347,11 +404,16 @@ namespace CardAssignment
             AdjustNumberOfCardsRequested(Moms);
             SetNumberOfCardsNeeded(Moms);
             AssignCards(Moms);
-            CheckForUnassignedCards(Moms);
+            CheckCounts(Moms);
             
             WriteNewSheet(Moms);
         } // ProcessExcel
 
+        /// <summary>
+        /// Checks for mismatches in number of cards requested and number of cards needed
+        /// </summary>
+        /// <param name="SheetName">Name of Excel sheet containing Mom data</param>
+        /// <returns>List of Moms serialized from Excel sheet</returns>
         private List<Mom> GetMoms(string SheetName)
         {
             List<Mom> Moms = new List<Mom>();
@@ -363,7 +425,7 @@ namespace CardAssignment
             }
 
             return Moms;
-        }
+        } // GetMoms
 
         /// <summary>
         /// Updates the existing file with the new worksheet information
