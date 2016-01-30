@@ -230,11 +230,35 @@ namespace CardAssignment
         {
             foreach (Mom momWithParticipatingChild in Moms.Where(m => m.HasParticipatingChild))
             {
-                //each child will receive at least one card
-                momWithParticipatingChild.Child.CardsNeeded = Math.Max(1, momWithParticipatingChild.CardsRequested);
+                momWithParticipatingChild.Child.CardsNeeded = GetDefaultNumberOfCardsNeeded(momWithParticipatingChild.CardsRequested);
             }
 
             AdjustNumberOfCardsNeeded(Moms);
+        }
+
+        /// <summary>
+        /// Gets default number of cards needed for child based on number of cards requested by mom
+        /// </summary>
+        /// <param name="cardsRequested">Number of cards requested by mom</param>
+        /// <returns>Default number of cards needed for child</returns>
+        private static int GetDefaultNumberOfCardsNeeded(int cardsRequested)
+        {
+            int cardsNeeded;
+
+            if (cardsRequested >= 8)
+            {
+                cardsNeeded = cardsRequested - 2;
+            }
+            else if (cardsRequested <= 5)
+            {
+                cardsNeeded = 4;
+            }
+            else
+            {
+                cardsNeeded = cardsRequested - 1;
+            }
+
+            return cardsNeeded;
         }
 
         /// <summary>
