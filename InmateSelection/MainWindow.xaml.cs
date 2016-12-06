@@ -210,10 +210,15 @@ namespace CardAssignment
 
         private static void SetNumberOfCardsNeeded(List<Mom> Moms)
         {
+            var max = Moms.Max( m => m.CardsRequested );
             foreach (Mom momWithParticipatingChild in Moms.Where(m => m.HasParticipatingChild))
             {
-                //each child will receive at least one card
-                momWithParticipatingChild.Child.CardsNeeded = Math.Max(1, momWithParticipatingChild.CardsRequested);
+                // each child will receive at least one card
+                // calculate a weighted "mean" for maximum amount of cards
+                var cardsRequested =  momWithParticipatingChild.CardsRequested*1.25 >= max ?
+                    (int) Math.Round( momWithParticipatingChild.CardsRequested*.8, MidpointRounding.ToEven) :
+                    momWithParticipatingChild.CardsRequested;
+                momWithParticipatingChild.Child.CardsNeeded = Math.Max( 6, Math.Min( 25, cardsRequested ) );
             }
 
             AdjustNumberOfCardsNeeded(Moms);
@@ -289,7 +294,7 @@ namespace CardAssignment
                                                                                 && m.ChildrenToSendCards.Any(cc => cc == c)))
                                                 .ToList();
 
-            List<Child> selectedChildren = availableChildren.OrderByDescending(c => c.CardsNeeded)
+            List<Child> selectedChildren = availableChildren.OrderBy(c => c.CardsNeeded)
                                                             .ThenBy(c => new Guid())
                                                             .Take(numberToSelect)
                                                             .ToList();
