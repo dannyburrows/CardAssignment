@@ -11,6 +11,7 @@ namespace CardAssignment
         public Child Child { get; set; }
         public List<Child> ChildrenToSendCards { get; set; }
         public bool HasParticipatingChild => Child != null && !Child.SkipChild;
+        public int CardsNeededForChild => HasParticipatingChild ? Child.CardsNeeded : 0;
 
         public Mom()
         {
